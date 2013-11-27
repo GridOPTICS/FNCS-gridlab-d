@@ -100,6 +100,19 @@ int fault_check::init(OBJECT *parent)
 		may change this.  Please restrict yourself to one fault_check object in the mean time.
 		*/
 	}
+	
+
+	//Make sure the eventgen_object is an actual eventgen object.
+	if(rel_eventgen != NULL){
+		if(!gl_object_isa(rel_eventgen,"eventgen")){
+			gl_error("fault_check:%s %s is not an eventgen object. Please specify the name of an eventgen object.",obj->name,rel_eventgen);
+			return 0;
+			/*  TROUBLESHOOT
+			The property eventgen_object was given the name of an object that is not an eventgen object.
+			Please provide the name of an eventgen object located in your file.
+			*/
+		}
+	}
 
 	//By default, kill the file - open and close it
 	if (output_filename[0] != '\0')	//Make sure it isn't empty
@@ -360,7 +373,7 @@ void fault_check::search_links(int node_int)
 											NR_busdata[temp_branch.from].Child_Nodes[NR_busdata[temp_branch.from].Child_Node_idx] = temp_branch.to;	//Store the to value
 											NR_busdata[temp_branch.from].Child_Node_idx++;	//Increment the pointer
 										}
-										else if ((rest_object ->Connectivity_Matrix[temp_branch.from][ temp_branch.to] == 3) && (*temp_branch.status == true)) //  if the branch is a closed switch connection
+										else if ((rest_object ->Connectivity_Matrix[temp_branch.from][ temp_branch.to] == 3) && (*temp_branch.status == 1)) //  if the branch is a closed switch connection
 										{
 											NR_busdata[temp_branch.from].Child_Nodes[NR_busdata[temp_branch.from].Child_Node_idx] = temp_branch.to;	//Store the to value
 											NR_busdata[temp_branch.from].Child_Node_idx++;	//Increment the pointer
