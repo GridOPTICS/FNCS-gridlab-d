@@ -33,6 +33,8 @@
 #include "kml.h"
 #include "kill.h"
 
+#include <cintegrator.h>
+
 #if defined WIN32 && _DEBUG 
 /** Implements a pause on exit capability for Windows consoles
  **/
@@ -171,6 +173,7 @@ int main(int argc, /**< the number entries on command-line argument list \p argv
 #endif
 	
 	/* start the processing environment */
+	initIntegrator("configgld.json",(uint64_t)global_clock);
 	output_verbose("load time: %d sec", realtime_runtime());
 	output_verbose("starting up %s environment", global_environment);
 	if (environment_start(argc,argv)==FAILED)

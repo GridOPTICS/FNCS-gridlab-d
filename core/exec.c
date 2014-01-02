@@ -133,6 +133,7 @@
 #include "test.h"
 #include "link.h"
 
+#include "cintegrator.h"
 #include "pthread.h"
 
 /** Set/get exit code **/
@@ -1830,7 +1831,10 @@ STATUS exec_start(void)
 
 	//sjin: GetMachineCycleCount
 	cstart = exec_clock();
-
+	setOffset((uint64_t)global_clock);
+	setregistercallback(getCurrentTime);
+	finalizeRegistrations();
+	int64 prevTime=1;
 	/* main loop exception handler */
 	TRY {
 
