@@ -1935,6 +1935,9 @@ STATUS exec_start(void)
 			else
 				global_simulation_mode = SM_EVENT;
 			
+			if(prevTime!=global_clock)
+			  timeStepStart(global_clock);
+			prevTime=global_clock;
 			/* synchronize all internal schedules */
 			if ( global_clock < 0 )
 				throw_exception("clock time is negative (global_clock=%lli)", global_clock);
@@ -2158,6 +2161,7 @@ STATUS exec_start(void)
 			/* check for clock advance (indicating last pass) */
 			if ( exec_sync_get(NULL)!=global_clock )
 			{
+				main_sync.step_to=getNextTime(global_clock,absolute_timestamp(main_sync.step_to));
 				TIMESTAMP commit_time = TS_NEVER;
 				commit_time = commit_all(global_clock, exec_sync_get(NULL));
 				if ( absolute_timestamp(commit_time) <= global_clock)
