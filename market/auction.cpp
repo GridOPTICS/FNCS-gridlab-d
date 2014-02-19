@@ -94,17 +94,20 @@ auction::auction(MODULE *module)
 			PT_double, "price_cap", PADDR(pricecap), PT_DESCRIPTION, "the maximum price (magnitude) allowed",
 
 			PT_enumeration, "special_mode", PADDR(special_mode),
-				PT_KEYWORD, "NONE", (enumeration)MD_NONE,
-				PT_KEYWORD, "SELLERS_ONLY", (enumeration)MD_SELLERS,
-				PT_KEYWORD, "BUYERS_ONLY", (enumeration)MD_BUYERS,
+				PT_KEYWORD, "NONE", MD_NONE,
+				PT_KEYWORD, "SELLERS_ONLY", MD_SELLERS,
+				PT_KEYWORD, "BUYERS_ONLY", MD_BUYERS,
 			PT_enumeration, "statistic_mode", PADDR(statistic_mode),
-				PT_KEYWORD, "ON", (enumeration)ST_ON,
-				PT_KEYWORD, "OFF", (enumeration)ST_OFF,
+				PT_KEYWORD, "ON", ST_ON,
+				PT_KEYWORD, "OFF", ST_OFF,
 			PT_double, "fixed_price", PADDR(fixed_price),
 			PT_double, "fixed_quantity", PADDR(fixed_quantity),
+			PT_double, "adjust_price", PADDR(adjust_price),
+			PT_double, "adjusted_price", PADDR(adjusted_price),
 			PT_object, "capacity_reference_object", PADDR(capacity_reference_object),
 			PT_char32, "capacity_reference_property", PADDR(capacity_reference_propname),
 			PT_double, "capacity_reference_bid_price", PADDR(capacity_reference_bid_price),
+			PT_double, "base_price",PADDR(last_capacity_reference_bid_price),
 			PT_double, "max_capacity_reference_bid_quantity", PADDR(max_capacity_reference_bid_quantity),
 			PT_double, "capacity_reference_bid_quantity", PADDR(capacity_reference_bid_quantity),
 			PT_double, "init_price", PADDR(init_price),
@@ -117,12 +120,12 @@ auction::auction(MODULE *module)
 			PT_double, "current_market.clearing_price[$]", PADDR(current_frame.clearing_price),
 			PT_double, "current_market.clearing_quantity", PADDR(current_frame.clearing_quantity),
 			PT_enumeration, "current_market.clearing_type", PADDR(current_frame.clearing_type),
-				PT_KEYWORD, "MARGINAL_SELLER", (enumeration)CT_SELLER,
-				PT_KEYWORD, "MARGINAL_BUYER", (enumeration)CT_BUYER,
-				PT_KEYWORD, "MARGINAL_PRICE", (enumeration)CT_PRICE,
-				PT_KEYWORD, "EXACT", (enumeration)CT_EXACT,
-				PT_KEYWORD, "FAILURE", (enumeration)CT_FAILURE,
-				PT_KEYWORD, "NULL", (enumeration)CT_NULL,
+				PT_KEYWORD, "MARGINAL_SELLER", CT_SELLER,
+				PT_KEYWORD, "MARGINAL_BUYER", CT_BUYER,
+				PT_KEYWORD, "MARGINAL_PRICE", CT_PRICE,
+				PT_KEYWORD, "EXACT", CT_EXACT,
+				PT_KEYWORD, "FAILURE", CT_FAILURE,
+				PT_KEYWORD, "NULL", CT_NULL,
 			PT_double, "current_market.marginal_quantity_load", PADDR(current_frame.marginal_quantity),
 			PT_double, "current_market.marginal_quantity", PADDR(current_frame.marginal_quantity),
 			PT_double, "current_market.marginal_quantity_bid", PADDR(current_frame.total_marginal_quantity),
@@ -138,12 +141,12 @@ auction::auction(MODULE *module)
 			PT_double, "next_market.clearing_price[$]", PADDR(next_frame.clearing_price),
 			PT_double, "next_market.clearing_quantity", PADDR(next_frame.clearing_quantity),
 			PT_enumeration, "next_market.clearing_type", PADDR(next_frame.clearing_type),
-				PT_KEYWORD, "MARGINAL_SELLER", (enumeration)CT_SELLER,
-				PT_KEYWORD, "MARGINAL_BUYER", (enumeration)CT_BUYER,
-				PT_KEYWORD, "MARGINAL_PRICE", (enumeration)CT_PRICE,
-				PT_KEYWORD, "EXACT", (enumeration)CT_EXACT,
-				PT_KEYWORD, "FAILURE", (enumeration)CT_FAILURE,
-				PT_KEYWORD, "NULL", (enumeration)CT_NULL,
+				PT_KEYWORD, "MARGINAL_SELLER", CT_SELLER,
+				PT_KEYWORD, "MARGINAL_BUYER", CT_BUYER,
+				PT_KEYWORD, "MARGINAL_PRICE", CT_PRICE,
+				PT_KEYWORD, "EXACT", CT_EXACT,
+				PT_KEYWORD, "FAILURE", CT_FAILURE,
+				PT_KEYWORD, "NULL", CT_NULL,
 			PT_double, "next_market.marginal_quantity_load", PADDR(next_frame.marginal_quantity),
 			PT_double, "next_market.marginal_quantity_bid", PADDR(next_frame.total_marginal_quantity),
 			PT_double, "next_market.marginal_quantity_frac", PADDR(next_frame.marginal_frac),
@@ -157,12 +160,12 @@ auction::auction(MODULE *module)
 			PT_double, "past_market.clearing_price[$]", PADDR(past_frame.clearing_price),
 			PT_double, "past_market.clearing_quantity", PADDR(past_frame.clearing_quantity),
 			PT_enumeration, "past_market.clearing_type", PADDR(past_frame.clearing_type),
-				PT_KEYWORD, "MARGINAL_SELLER", (enumeration)CT_SELLER,
-				PT_KEYWORD, "MARGINAL_BUYER", (enumeration)CT_BUYER,
-				PT_KEYWORD, "MARGINAL_PRICE", (enumeration)CT_PRICE,
-				PT_KEYWORD, "EXACT", (enumeration)CT_EXACT,
-				PT_KEYWORD, "FAILURE", (enumeration)CT_FAILURE,
-				PT_KEYWORD, "NULL", (enumeration)CT_NULL,
+				PT_KEYWORD, "MARGINAL_SELLER", CT_SELLER,
+				PT_KEYWORD, "MARGINAL_BUYER", CT_BUYER,
+				PT_KEYWORD, "MARGINAL_PRICE", CT_PRICE,
+				PT_KEYWORD, "EXACT", CT_EXACT,
+				PT_KEYWORD, "FAILURE", CT_FAILURE,
+				PT_KEYWORD, "NULL", CT_NULL,
 			PT_double, "past_market.marginal_quantity_load", PADDR(past_frame.marginal_quantity),
 			PT_double, "past_market.marginal_quantity_bid", PADDR(past_frame.total_marginal_quantity),
 			PT_double, "past_market.marginal_quantity_frac", PADDR(past_frame.marginal_frac),
@@ -173,19 +176,19 @@ auction::auction(MODULE *module)
 
 			PT_enumeration, "margin_mode", PADDR(margin_mode),
 				PT_KEYWORD, "NORMAL", 0,
-				PT_KEYWORD, "DENY", (enumeration)AM_DENY,
-				PT_KEYWORD, "PROB", (enumeration)AM_PROB,
+				PT_KEYWORD, "DENY", AM_DENY,
+				PT_KEYWORD, "PROB", AM_PROB,
 			PT_int32, "warmup", PADDR(warmup),
 			PT_enumeration, "ignore_pricecap", PADDR(ignore_pricecap),
-				PT_KEYWORD, "FALSE", (enumeration)IP_FALSE,
-				PT_KEYWORD, "TRUE", (enumeration)IP_TRUE,
+				PT_KEYWORD, "FALSE", IP_FALSE,
+				PT_KEYWORD, "TRUE", IP_TRUE,
 			PT_char256, "transaction_log_file", PADDR(trans_log),
 			PT_int32, "transaction_log_limit", PADDR(trans_log_max),
 			PT_char256, "curve_log_file", PADDR(curve_log),
 			PT_int32, "curve_log_limit", PADDR(curve_log_max),
 			PT_enumeration, "curve_log_info", PADDR(curve_log_info),
-				PT_KEYWORD, "NORMAL", (enumeration)CO_NORMAL,
-				PT_KEYWORD, "EXTRA", (enumeration)CO_EXTRA,
+				PT_KEYWORD, "NORMAL", CO_NORMAL,
+				PT_KEYWORD, "EXTRA", CO_EXTRA,
 
 			NULL)<1){
 				char msg[256];
@@ -220,6 +223,8 @@ int auction::create(void)
 	pricecap = 0;
 	warmup = 1;
 	market_id = 1;
+	adjust_price = 0.0;
+	adjusted_price = 0.0;
 	clearing_scalar = 0.5;
 	/* process dynamic statistics */
 	if(statistic_check == -1){
@@ -245,11 +250,22 @@ int auction::init(OBJECT *parent)
 	OBJECT *obj=OBJECTHDR(this);
 	unsigned int i = 0;
 
+	if(capacity_reference_object != NULL){
+		if(obj->rank <= capacity_reference_object->rank){
+			gl_set_rank(obj,capacity_reference_object->rank+1);
+		}
+		if(capacity_reference_object->flags & OF_INIT != OF_INIT){
+			char objname[256];
+			gl_verbose("auction::init(): deferring initialization on $s", gl_name(obj, objname, 255));
+			return 2; // defer
+		}
+	}
+
 	if(trans_log[0] != 0){
 		time_t now = time(NULL);
 		trans_file = fopen(trans_log, "w");
 		if(trans_file == 0){
-			gl_error("%s (auction:%d) unable to open '%s' as a transaction log output file", obj->name?obj->name:"anonymous", obj->id, trans_log.get_string());
+			gl_error("%s (auction:%d) unable to open '%s' as a transaction log output file", obj->name?obj->name:"anonymous", obj->id, trans_log.get_size());
 			return 0;
 		}
 		// else write transaction file header, a la recorder file headers
@@ -321,7 +337,7 @@ int auction::init(OBJECT *parent)
 	/* reference object & property */	
 	if(capacity_reference_object != NULL){
 		if(capacity_reference_propname[0] != 0){
-			capacity_reference_property = gl_get_property(capacity_reference_object, capacity_reference_propname.get_string());
+			capacity_reference_property = gl_get_property(capacity_reference_object, capacity_reference_propname);
 			if(capacity_reference_property == NULL){
 				gl_error("%s (auction:%d) capacity_reference_object of type '%s' does not contain specified reference property '%s'", obj->name?obj->name:"anonymous", obj->id, capacity_reference_object->oclass->name, capacity_reference_propname.get_string());
 				/* TROUBLESHOOT
@@ -426,6 +442,7 @@ int auction::init(OBJECT *parent)
 	}
 	current_frame.clearing_price = init_price;
 	past_frame.clearing_price = init_price;
+	last_capacity_reference_bid_price = init_price;
 	if(latency > 0)
 		next_frame.clearing_price = init_price;
 	return 1; /* return 1 on success, 0 on failure */
@@ -715,7 +732,10 @@ TIMESTAMP auction::pop_market_frame(TIMESTAMP t1){
 
 /* Presync is called when the clock needs to advance on the first top-down pass */
 TIMESTAMP auction::presync(TIMESTAMP t0, TIMESTAMP t1)
-{
+{	
+	if(adjust_price != 0){
+		adjusted_price = fixed_price + adjust_price;
+	}
 	if (clearat==TS_ZERO)
 	{
 		clearat = nextclear();
@@ -749,7 +769,7 @@ TIMESTAMP auction::presync(TIMESTAMP t0, TIMESTAMP t1)
 		thishr = dt.hour;
 		double thismin = dt.minute;
 		clear_market();
-
+		last_capacity_reference_bid_price = capacity_reference_bid_price;
 		// advance market_id
 		++market_id;
 
@@ -858,7 +878,7 @@ void auction::clear_market(void)
 
 		if(strcmp(unit, "") != 0){
 			if(capacity_reference_property->unit != 0){
-				if(gl_convert(capacity_reference_property->unit->name,unit.get_string(),&refload) == 0){
+				if(gl_convert(capacity_reference_property->unit->name,unit,&refload) == 0){
 					char msg[256];
 					sprintf(msg, "capacity_reference_property %s uses units of %s and is incompatible with auction units (%s)", gl_name(linkref,name,sizeof(name)), capacity_reference_property->unit->name, unit.get_string());
 					throw msg;
@@ -885,14 +905,14 @@ void auction::clear_market(void)
 		}
 		else if (unresponsive.quantity > 0.001)
 		{
-			submit_bid_state(OBJECTHDR(this), capacity_reference_object, -unresponsive.quantity, unresponsive.price, 1, -1);
+			submit_nolock(OBJECTHDR(this), -unresponsive.quantity, unresponsive.price, -1, BS_ON);
 			gl_verbose("capacity_reference_property %s has %.3f unresponsive load", gl_name(linkref,name,sizeof(name)), -unresponsive.quantity);
 		}
 	}
 
 
 	/* handle bidding capacity reference */
-	if(capacity_reference_object != NULL && special_mode == MD_NONE) {
+	if(capacity_reference_object != NULL && capacity_reference_property != NULL && special_mode == MD_NONE) {
 		double *pCaprefq = gl_get_double(capacity_reference_object, capacity_reference_property);
 		double caprefq;
 		if(pCaprefq == NULL) {
@@ -903,7 +923,7 @@ void auction::clear_market(void)
 		caprefq = *pCaprefq;
 		if(strcmp(unit, "") != 0) {
 			if (capacity_reference_property->unit != 0) {
-				if(gl_convert(capacity_reference_property->unit->name,unit.get_string(),&caprefq) == 0) {
+				if(gl_convert(capacity_reference_property->unit->name,unit,&caprefq) == 0) {
 					char msg[256];
 					sprintf(msg, "capacity_reference_property %s uses units of %s and is incompatible with auction units (%s)", capacity_reference_property->name, capacity_reference_property->unit->name, unit.get_string());
 					throw msg;
@@ -927,7 +947,7 @@ void auction::clear_market(void)
 			}
 			for (unsigned int i=0; i<offers.getcount(); i++){
 				if (verbose){
-					gl_output("   ...  %4d: %s offers %.3f %s at %.2f $/%s",i,gl_name(offers.getbid(i)->from,name,sizeof(name)), offers.getbid(i)->quantity,unit.get_string(),offers.getbid(i)->price,unit.get_string());
+					gl_output("   ...  %4d: %s offers %.3f %s at %.2f $/%s",i,gl_name(offers.getbid(i)->from,name,sizeof(name)), offers.getbid(i)->quantity,unit.get_size(),offers.getbid(i)->price,unit.get_string());
 				}
 			}
 			if(fixed_price * fixed_quantity != 0.0){
@@ -975,7 +995,7 @@ void auction::clear_market(void)
 			}
 			for (unsigned int i=0; i<asks.getcount(); i++){
 				if (verbose){
-					gl_output("   ...  %4d: %s asks %.3f %s at %.2f $/%s",i,gl_name(asks.getbid(i)->from,name,sizeof(name)), asks.getbid(i)->quantity,unit.get_string(),asks.getbid(i)->price,unit.get_string());
+					gl_output("   ...  %4d: %s asks %.3f %s at %.2f $/%s",i,gl_name(asks.getbid(i)->from,name,sizeof(name)), asks.getbid(i)->quantity,unit.get_size(),asks.getbid(i)->price,unit.get_string());
 				}
 			}
 			if(fixed_price * fixed_quantity != 0.0){
@@ -999,18 +1019,34 @@ void auction::clear_market(void)
 			} else if(fixed_quantity < 0.0){
 				GL_THROW("fixed_quantity is negative");
 			} else {
-				single_price = fixed_price;
-				for(unsigned int i = 0;  i < asks.getcount(); ++i){
-					if(asks.getbid(i)->price >= fixed_price){
-						single_quantity += asks.getbid(i)->quantity;
-					} else {
-						break;
+				if (adjusted_price == 0.0){
+					single_price = fixed_price;
+					for(unsigned int i = 0;  i < asks.getcount(); ++i){
+						if(asks.getbid(i)->price >= fixed_price){
+							single_quantity += asks.getbid(i)->quantity;
+						} else {
+							break;
+						}
 					}
-				}
-				if(single_quantity > 0.0){
-					clearing_type = CT_EXACT;
+					if(single_quantity > 0.0){
+						clearing_type = CT_EXACT;
+					} else {
+						clearing_type = CT_NULL;
+					}
 				} else {
-					clearing_type = CT_NULL;
+					single_price = adjusted_price;
+					for(unsigned int i = 0;  i < asks.getcount(); ++i){
+						if(asks.getbid(i)->price >= adjusted_price){
+							single_quantity += asks.getbid(i)->quantity;
+						} else {
+							break;
+						}
+					}
+					if(single_quantity > 0.0){
+						clearing_type = CT_EXACT;
+					} else {
+						clearing_type = CT_NULL;
+					}
 				}
 			}
 			next.quantity = single_quantity;
@@ -1389,7 +1425,7 @@ void auction::clear_market(void)
 	}
 }
 
-void auction::record_bid(OBJECT *from, double quantity, double real_price, BIDDERSTATE state){
+void auction::record_bid(OBJECT *from, double quantity, double real_price, BIDDERSTATE state, long int id){
 	char name_buffer[256];
 	char *unkState = "unknown";
 	char *offState = "off";
@@ -1416,7 +1452,7 @@ void auction::record_bid(OBJECT *from, double quantity, double real_price, BIDDE
 					break;
 			}
 			tStr = (gl_strtime(&dt,buffer,sizeof(buffer)) ? buffer : unk);
-			sprintf(bigbuffer, "%d,%s,%s,%f,%f,%s", (int32)market_id, tStr, gl_name(from, name_buffer, 256), real_price, quantity, pState);
+			sprintf(bigbuffer, "%d,%s,%s,%f,%f,%s,%li", (int32)market_id, tStr, gl_name(from, name_buffer, 256), real_price, quantity, pState, id);
 			fprintf(trans_file, "%s\n", bigbuffer);
 			--trans_log_count;
 		} else {
@@ -1453,7 +1489,7 @@ KEY auction::submit_nolock(OBJECT *from, double quantity, double real_price, KEY
 	if (total_samples<sph24 && quantity<0 && warmup)
 	{
 		if (verbose) gl_output("   ...  %s ignoring demand bid during first 24 hours", gl_name(OBJECTHDR(this),myname,sizeof(myname)));
-		return -1;
+		return -5;
 	}
 
 	/* translate key */
@@ -1472,10 +1508,11 @@ KEY auction::submit_nolock(OBJECT *from, double quantity, double real_price, KEY
 
 	if (biddef.market > market_id)
 	{	// future market
-		gl_error("bidding into future markets is not yet supported");
+		gl_error("bidding into future markets is not yet supported (bid %i, mid %i)", biddef.market, market_id);
 		/* TROUBLESHOOT
 			Tracking bids input markets other than the immediately open one will be supported in the future.
 			*/
+		return -2;
 	}
 	else if (biddef.market == market_id) // resubmit
 	{
@@ -1484,7 +1521,7 @@ KEY auction::submit_nolock(OBJECT *from, double quantity, double real_price, KEY
 		if (verbose){
 			gl_output("   ...  %s resubmits %s from object %s for %.2f %s at $%.2f/%s at %s", 
 				gl_name(OBJECTHDR(this),myname,sizeof(myname)), quantity<0?"ask":"offer", gl_name(from,biddername,sizeof(biddername)), 
-				fabs(quantity), unit.get_string(), price, unit.get_string(), gl_strtime(&dt,buffer,sizeof(buffer))?buffer:"unknown time");
+				fabs(quantity), unit.get_size(), price, unit.get_string(), gl_strtime(&dt,buffer,sizeof(buffer))?buffer:"unknown time");
 		}
 		BID bid = {from,fabs(quantity),price,state};
 		if (biddef.bid_type == BID_BUY){
@@ -1494,7 +1531,7 @@ KEY auction::submit_nolock(OBJECT *from, double quantity, double real_price, KEY
 		} else {
 			;
 		}
-		record_bid(from, quantity, real_price, state);
+		record_bid(from, quantity, real_price, state, biddef.raw);
 		return biddef.raw;
 	}
 	else if (biddef.market < 0 || biddef.bid_type == BID_UNKNOWN){
@@ -1504,7 +1541,7 @@ KEY auction::submit_nolock(OBJECT *from, double quantity, double real_price, KEY
 		if (verbose){
 			gl_output("   ...  %s receives %s from object %s for %.2f %s at $%.2f/%s at %s", 
 				gl_name(OBJECTHDR(this),myname,sizeof(myname)), quantity<0?"ask":"offer", gl_name(from,biddername,sizeof(biddername)), 
-				fabs(quantity), unit.get_string(), price, unit.get_string(), gl_strtime(&dt,buffer,sizeof(buffer))?buffer:"unknown time");
+				fabs(quantity), unit.get_size(), price, unit.get_size(), gl_strtime(&dt,buffer,sizeof(buffer))?buffer:"unknown time");
 		}
 		BID bid = {from,fabs(quantity),price,state};
 		if (quantity<0){
@@ -1514,14 +1551,14 @@ KEY auction::submit_nolock(OBJECT *from, double quantity, double real_price, KEY
 		} else {
 			char name[64];
 			gl_debug("zero quantity bid from %s is ignored", gl_name(from,name,sizeof(name)));
-			return -1;
+			return -4;
 		}
 		biddef.bid = (int16)out;
 		biddef.market = market_id;
 		biddef.bid_type = (quantity > 0 ? BID_SELL : BID_BUY);
 		write_bid(out, biddef.market, biddef.bid, biddef.bid_type);
 		// interject transaction log file writing here
-		record_bid(from, quantity, real_price, state);
+		record_bid(from, quantity, real_price, state, -1);
 		biddef.raw = out;
 		return biddef.raw;
 	} else { // key between cleared market and 'market_id' ~ points to an old market
@@ -1532,7 +1569,7 @@ KEY auction::submit_nolock(OBJECT *from, double quantity, double real_price, KEY
 				gl_name(OBJECTHDR(this),myname,sizeof(myname)),quantity<0?"ask":"offer",
 				gl_name(from,biddername,sizeof(biddername)));
 		}
-		return 0;
+		return -3;
 	}
 	return 0;
 }

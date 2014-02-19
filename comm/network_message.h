@@ -62,14 +62,14 @@ public:
 	network_message *next, *prev;
 	network_interface *pTo, *pFrom;
 
-	int send_message(network_interface *nif, TIMESTAMP ts, double latency);
-	int send_message(OBJECT *f, OBJECT *t, char *m, int len, double sz, TIMESTAMP ts, double frac, double latency);
-
 	double send_rate;
 	double recv_rate;
 	double buffer_rate;
-public:
+	
 	static CLASS *oclass;
+
+	int send_message(network_interface *nif, TIMESTAMP ts, double latency);
+	int send_message(OBJECT *f, OBJECT *t, char *m, int len, double sz, TIMESTAMP ts, double frac, double latency);
 	network_message();
 	network_message(MODULE *mod);
 	int create();

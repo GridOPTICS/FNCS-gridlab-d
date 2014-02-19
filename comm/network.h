@@ -65,6 +65,7 @@ private:
 	void update_latency();
 public:
 	static CLASS *oclass;
+	network(){;};
 	network(MODULE *mod);
 	int create();
 	int init(OBJECT *parent);

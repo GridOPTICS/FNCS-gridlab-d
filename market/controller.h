@@ -12,8 +12,9 @@
 #include <stdarg.h>
 #include "auction.h"
 #include "gridlabd.h"
+//#include "lock.h"
 
-class controller : public gld_object {
+class controller {
 public:
 	controller(MODULE *);
 	int create(void);
@@ -23,6 +24,12 @@ public:
 	TIMESTAMP sync(TIMESTAMP t0, TIMESTAMP t1);
 	TIMESTAMP postsync(TIMESTAMP t0, TIMESTAMP t1);
 	static CLASS *oclass;
+
+	void check_proxystate(char *);
+	void update_proxy_bid(char *);
+private:
+	int init_direct(OBJECT *parent);
+	int init_proxy(OBJECT *parent);
 public:
 	typedef enum {
 		SM_NONE,
@@ -33,25 +40,27 @@ public:
 		SM_WATERHEATER,
 		SM_DOUBLE_RAMP,
 	} SIMPLE_MODE;
-	enumeration simplemode;
+	SIMPLE_MODE simplemode;
 	
 	typedef enum {
 		BM_OFF,
 		BM_ON,
+		BM_PROXY,
 	} BIDMODE;
-	enumeration bidmode;
+	BIDMODE bidmode;
 
 	typedef enum {
 		CN_RAMP,
 		CN_DOUBLE_RAMP,
 	} CONTROLMODE;
-	enumeration control_mode;
+	CONTROLMODE control_mode;
 	
 	typedef enum {
 		RM_DEADBAND,
 		RM_SLIDING,
+		RM_DOMINANT,
 	} RESOLVEMODE;
-	enumeration resolve_mode;
+	RESOLVEMODE resolve_mode;
 
 	typedef enum{
 		TM_INVALID=0,
@@ -59,15 +68,38 @@ public:
 		TM_HEAT=2,
 		TM_COOL=3,
 	} THERMOSTATMODE;
-	enumeration thermostat_mode, last_mode, previous_mode;
+	THERMOSTATMODE thermostat_mode, last_mode, previous_mode;
 
 	typedef enum {
 		OU_OFF=0,
 		OU_ON=1
 	} OVERRIDE_USE;
-	enumeration use_override;
+	OVERRIDE_USE use_override;
+
+	typedef enum {
+		PS_NOTREADY=0,
+		PS_INIT=1,
+		PS_READY=2,
+		PS_ERROR=3,
+	} PROXY_STATE;
+	PROXY_STATE proxystate;
+
+	typedef enum {
+		PR_NONE=0,
+		PR_SENT=1,
+		PR_SUCCESS=2,
+		PR_FAIL_LATE=3,
+		PR_FAIL_BOGUS=4,
+		PR_FAIL_WARMUP=5,
+		PR_FAIL_EARLY=6,
+		PR_FAIL_ZEROQ=7,
+		PR_FAIL_BADBIDNUM=8
+	} PROXY_BID_RESULT;
+	PROXY_BID_RESULT bid_result;
 
 	double kT_L, kT_H;
+	int32 bid_count;
+	int32 last_bid_count;
 	char target[33];
 	char setpoint[33];
 	char demand[33];
@@ -82,11 +114,13 @@ public:
 	KEY lastmkt_id;
 	double last_p;
 	double last_q;
+	BIDDERSTATE bid_state;
 	double set_temp;
+	double set_temp_heat;
+	double set_temp_cool;
 	int may_run;
 
 	// new stuff
-	double clear_price;
 	double ramp_low, ramp_high;
 	double dPeriod;
 	int64 period;
@@ -115,22 +149,48 @@ public:
 	char32 cooling_state;
 	char32 deadband;
 	char32 re_override;
+	enumeration last_pState;
 
 	double setpoint0;
 	double heating_setpoint0;
 	double cooling_setpoint0;
 	double sliding_time_delay;
 	int bid_delay;
+	bool warn_warmup;
 
-	bool use_predictive_bidding;
 	double last_setpoint;
-	double last_heating_setpoint;
-	double last_cooling_setpoint;
-
+	
+	bool bid_deadband_ends;
+	bool bid_setpoint_change;
+	// proxy mode values
+	bool proxy_bid_ready;
+	OBJECT *proxy_object;
+	TIMESTAMP proxy_update_time;
+	double proxy_init_price;
+	int32 proxy_market_period;
+	char32 proxy_market_unit;
+	int64 proxy_market_id;
+	int64 proxy_bid_id;
+	int32 proxy_bid_retval;
+	TIMESTAMP proxy_clear_time;
+	double proxy_clear_price;
+	double proxy_marginal_frac;
+	double proxy_price_cap;
+	double proxy_avg;
+	double proxy_stdev;
+	int proxy_has_id;
+	int proxy_delay;
+	TIMESTAMP proxy_last_tx;
+	int32 no_bid_reason;
+	double bid_return_check;
+	int32 bid_resp;
+	TIMESTAMP bid_return;
 
 private:
+	TIMESTAMP ramp_control(TIMESTAMP t0, TIMESTAMP t1);
+	TIMESTAMP double_ramp_control(TIMESTAMP t0, TIMESTAMP t1);
+
 	TIMESTAMP next_run;
-	TIMESTAMP init_time;
 	double *pMonitor;
 	double *pSetpoint;
 	double *pDemand;
@@ -139,10 +199,10 @@ private:
 	double *pAvg;
 	double *pStd;
 	enumeration *pState;
-	enumeration last_pState;
+	//enumeration last_pState;
 	void cheat();
 	void fetch(double **prop, char *name, OBJECT *parent);
-	int dir, direction;
+	int dir, dir2;
 	double min, max;
 	double T_lim, k_T;
 	double heat_min, heat_max;
@@ -167,6 +227,8 @@ private:
 	int64 dtime_delay;
 	TIMESTAMP time_off;
 	bool use_market_period;
+	double lastHeatSetPoint;
+	double lastCoolSetPoint;
 
 	enumeration *pOverride;
 };

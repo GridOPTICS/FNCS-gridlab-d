@@ -30,7 +30,7 @@ typedef struct s_market_frame{
 	int64 market_id;
 	TIMESTAMP start_time;
 	TIMESTAMP end_time;
-	enumeration clearing_type;
+	CLEARINGTYPE clearing_type;
 	double clearing_price;
 	double clearing_quantity;
 	double marginal_quantity;
@@ -57,10 +57,10 @@ public:
 	bool use_future_mean_price;
 	typedef enum {ST_ON=0, ST_OFF=1} STATISTICMODE;
 	typedef enum {IP_FALSE=0, IP_TRUE=1} IGNOREPRICECAP;
-	enumeration ignore_pricecap;
+	IGNOREPRICECAP ignore_pricecap;
 	typedef enum {CO_NORMAL=0, CO_EXTRA=1} CURVEOUTPUT;
-	enumeration curve_log_info;
-	enumeration margin_mode;
+	CURVEOUTPUT curve_log_info;
+	MARGINMODE margin_mode;
 private:
 	// functions
 	int init_statistics();
@@ -68,7 +68,7 @@ private:
 	int push_market_frame(TIMESTAMP t1);
 	int check_next_market(TIMESTAMP t1);
 	TIMESTAMP pop_market_frame(TIMESTAMP t1);
-	void record_bid(OBJECT *from, double quantity, double real_price, BIDDERSTATE state);
+	void record_bid(OBJECT *from, double quantity, double real_price, BIDDERSTATE state, long int id);
 	void record_curve(double, double);
 	// variables
 	curve asks;			/**< demand curve */ 
@@ -94,10 +94,12 @@ public:
 	OBJECT *linkref;	/**< reference link object that contains the total load (used to determine unresponsive load when not all load bid) */
 
 	// new stuff
-	enumeration special_mode;
-	enumeration clearing_type;
-	enumeration statistic_mode;
+	SPECIALMODE special_mode;
+	CLEARINGTYPE clearing_type;
+	STATISTICMODE statistic_mode;
 	double fixed_price;
+	double adjust_price;
+	double adjusted_price;
 	double fixed_quantity;
 	double future_mean_price; // right now the future mean price will be fed with a player
 	
@@ -107,6 +109,7 @@ public:
 	char32 capacity_reference_propname;
 	PROPERTY *capacity_reference_property;
 	double capacity_reference_bid_price; // the bid price the capacity reference bids
+	double last_capacity_reference_bid_price; //holds the base price for the current market.
 	double max_capacity_reference_bid_quantity; // the maximum bid quantity
 	double capacity_reference_bid_quantity; // the bid quantity the capacity reference bids
 	int32 warmup;

@@ -17,12 +17,12 @@ public:
 		R_PHASE_A,
 		R_PHASE_B,
 		R_PHASE_C
-	};
-	enumeration reference_phase;						///< The point of reference for the positive sequence voltage conversion
+	} REFPHASE;
+	REFPHASE reference_phase;						///< The point of reference for the positive sequence voltage conversion
 	complex average_transmission_power_load;		///<the average constant power load to be posted directly to the pw_load object
 	complex average_transmission_impedance_load;	///<the average constant impedance load to be posted directly to the pw_load object
 	complex average_transmission_current_load;		///<the average constant current load to be posted directly to the pw_load object
-	complex average_distribution_load;				///<The average of the loads on all three phases at the substation object
+	complex distribution_load;				///<The total load of all three phases at the substation object
 	complex distribution_power_A;					
 	complex distribution_power_B;					
 	complex distribution_power_C;	

@@ -14,7 +14,10 @@
 
 #include "network.h"
 #include "mpi_network.h"
-
+#include "controller_network_interface.h"
+#include "market_network_interface.h"
+#include "mpi_comm_test.h"
+#include "transmissioncom.h"
 // default static variables here
 
 EXPORT CLASS *init(CALLBACKS *fntable, MODULE *module, int argc, char *argv[])
@@ -28,7 +31,10 @@ EXPORT CLASS *init(CALLBACKS *fntable, MODULE *module, int argc, char *argv[])
 	new network(module);
 	new network_interface(module);
 #ifdef USE_MPI
-	new mpi_network(module);
+	//new mpi_network(module);
+	new controller_network_interface(module);
+	new market_network_interface(module);
+	new transmissioncom(module);
 #endif
 
 	/* always return the first class registered */
@@ -45,5 +51,5 @@ EXPORT int check(){
 	return 0;
 }
 
-
+// test function in comm/test.cpp
 /**@}**/

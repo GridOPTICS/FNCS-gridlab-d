@@ -17,10 +17,12 @@
 // CLASS FUNCTIONS
 //////////////////////////////////////////////////////////////////////////
 CLASS* network_interface::oclass = NULL;
+network_interface *network_interface::defaults = NULL;
 
 // the constructor registers the class and properties and sets the defaults
 network_interface::network_interface(MODULE *mod) 
 {
+	memset(this, 0, sizeof(network_interface));
 	// first time init
 	if (oclass==NULL)
 	{
@@ -71,12 +73,15 @@ network_interface::network_interface(MODULE *mod)
 				by a coding error in the core implementation of classes or the module implementation.
 				Please report this error to the developers.
 			 */
+		defaults = this;
 	}
 }
 
 // create is called every time a new object is loaded
 int network_interface::create() 
 {
+	memset(this, 0, sizeof(network_interface));
+	memcpy(defaults, this, sizeof(network_interface));
 	return 1;
 }
 
@@ -84,6 +89,10 @@ int network_interface::init(OBJECT *parent)
 {
 	OBJECT *hdr = OBJECTHDR(this);
 	// input validation checks
+
+	if(0 == parent){
+		GL_THROW("network interface does not have a parent object");
+	}
 	if(to == 0){
 		GL_THROW("network interface is not connected to a network");
 	}
@@ -104,7 +113,7 @@ int network_interface::init(OBJECT *parent)
 	}
 	target = gl_get_property(parent, prop_str);
 	if(target == 0){
-		GL_THROW("network interface parent does not contain property '%s'", prop_str);
+		GL_THROW("network interface parent does not contain property '%s'", prop_str.get_string());
 	}
 	// note that there is no type-checking on this: the target property can be a string, FP number, integer, or struct.
 	//   all the interface does is copy data to where it's told.  note that this is "dangerous".
@@ -114,6 +123,9 @@ int network_interface::init(OBJECT *parent)
 	bandwidth_used = 0.0;
 	//size = 0;
 
+	// set check_buffer_func
+//	check_buffer_func = &network_interface::check_buffer;
+
 	//buffer_size = prev_buffer_size = 1024;
 	if(ignore_size){
 		prev_buffer_size = buffer_size;
@@ -121,6 +133,7 @@ int network_interface::init(OBJECT *parent)
 		buffer_size = prev_buffer_size = target->width;
 	}
 	pNetwork->attach(this);
+
 	// success
 	return 1;
 }
@@ -184,11 +197,8 @@ int network_interface::on_message(){
 	return 0;
 }
 
-/* check if it's time to send a message and poll the parent's target property for updated data */
-int network_interface::check_buffer(){
+bool network_interface::check_write_msg(){
 	OBJECT *obj = OBJECTHDR(this);
-	write_msg = false;
-	//void *a = OBJECTDATA((void),obj->parent);
 	void *b = (target->addr);
 	void *c = ((void *)((obj->parent)?((obj->parent)+1):NULL));
 	void *d = (void *)((int64)c + (int64)b);
@@ -197,7 +207,7 @@ int network_interface::check_buffer(){
 	// do interval first, to avoid the memcmp on on update_period
 	// check if we should retreive and write data
 	if(duplex_mode == DXM_RECV_ONLY){
-		return 1;
+		return false;
 	}
 	if((send_message_mode == NSM_INTERVAL || send_message_mode == NSM_UPDATE_PERIOD) && time_for_update){
 		write_msg = true;
@@ -214,20 +224,37 @@ int network_interface::check_buffer(){
 			}
 		}
 	}
+	return write_msg;
+}
 
-	if(write_msg){
-		curr_buffer_size = buffer_size;
-//		memset(prev_data_buffer, 0, buffer_size);
-//		memcpy(prev_data_buffer, data_buffer, buffer_size);
-		memset(data_buffer, 0, buffer_size);
-		memcpy(data_buffer, (void *)(d), buffer_size);
-		//gl_set_value(obj, data_buffer, (char *)c, 0);
-		network_message *nm = (network_message *)malloc(sizeof(network_message));
-		memset(nm, 0, sizeof(network_message));
-		nm->send_message(this, gl_globalclock, pNetwork->latency); // this hooks the message in to the network
-		nm->next = outbox;
-		outbox = nm;
-		last_message_send_time = gl_globalclock;
+void network_interface::send_buffer_msg(){
+	OBJECT *obj = OBJECTHDR(this);
+	void *b = (target->addr);
+	void *c = ((void *)((obj->parent)?((obj->parent)+1):NULL));
+	void *d = (void *)((int64)c + (int64)b);
+
+	curr_buffer_size = buffer_size;
+//	memset(prev_data_buffer, 0, buffer_size);
+//	memcpy(prev_data_buffer, data_buffer, buffer_size);
+	memset(data_buffer, 0, buffer_size);
+	memcpy(data_buffer, (void *)(d), buffer_size);
+	//gl_set_value(obj, data_buffer, (char *)c, 0);
+	network_message *nm =new network_message(); //(network_message *)malloc(sizeof(network_message));
+	//memset(nm, 0, sizeof(network_message));
+	nm->send_message(this, gl_globalclock, pNetwork->latency); // this hooks the message in to the network
+	nm->next = outbox;
+	outbox = nm;
+	last_message_send_time = gl_globalclock;
+}
+
+/* check if it's time to send a message and poll the parent's target property for updated data */
+int network_interface::check_buffer(){
+	
+	write_msg = false;
+	//void *a = OBJECTDATA((void),obj->parent);
+
+	if(true == check_write_msg()){
+		send_buffer_msg();	
 	}
 
 	return 1;
@@ -263,7 +290,8 @@ network_message *network_interface::handle_inbox(TIMESTAMP t1, network_message *
 	if(nm != 0){ // it's been stacked, process in reverse order
 		rv = handle_inbox(t1, nm->next);
 		if (rv != nm->next){
-			free(nm->next);
+			//free(nm->next);
+			delete nm->next;
 			nm->next = rv;
 		}
 	} else {
@@ -284,6 +312,39 @@ network_message *network_interface::handle_inbox(TIMESTAMP t1, network_message *
 	} else {
 		return nm;
 	}
+}
+
+unsigned int network_interface::count_outbound(){
+	unsigned int count = 0;
+	network_message *msg;
+	for(msg = outbox; msg != 0; msg = msg->next){
+		++count;
+	}
+	return count;
+}
+
+int network_interface::wrap_svbn(char *fname, char *propname, char *propstr){
+	OBJECT *obj, *parent;
+	obj = OBJECTHDR(this);
+	parent = obj->parent;
+	if(0 == fname){
+		gl_error("wrap_svbn(): null pointer for function name");
+		return 0;
+	}
+	if(0 == propname){
+		gl_error("wrap_svbn in %s(): null pointer for propname", fname);
+		return 0;
+	}
+	if(0 == propstr){
+		gl_error("wrap_svbn in %s(): null pointer for propstr on '%s'", fname, propname);
+		return 0;
+	}
+//	gl_output("svbn called with '%s' (%x)", propstr, propstr);
+	if(0 == gl_set_value_by_name(parent, propname, propstr)){
+		gl_error("%s(): unable to set %s to %s", fname, propname, propstr);
+		return 0;
+	}
+	return 1;
 }
 
 //////////////////////////////////////////////////////////////////////////

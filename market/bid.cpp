@@ -46,4 +46,26 @@ void write_bid(KEY &key, int64 market, int64 bid, BIDTYPE type){
 	key = ((market << 16) & mask) + (type == BID_BUY ? 0x8000 : 0) + (bid & 0x7FFFF);
 }
 
+KEY get_market_from_key(KEY *key){
+	int64 mask = 0x8FFFFFFFFFFF0000LL;
+	KEY k = 0;
+	if(key == 0){
+		gl_error("");
+		return -1;
+	}
+	k = *key;
+	//return (key & mask) >> 16;
+	return 0;
+}
+int16 get_bidid_from_key(KEY *key){
+	KEY k = 0;
+	if(key == 0){
+		gl_error("");
+		return -1;
+	}
+	k = *key;
+	//return (int16)((int64)key & 0x7FFFLL);
+	return -1;
+}
+
 // EOF

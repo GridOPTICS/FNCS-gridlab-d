@@ -87,7 +87,7 @@ int network::init(OBJECT *parent)
 	if(latency_mode[0] != 0){
 		random_type = gl_randomtype(latency_mode);
 		if(random_type == RT_INVALID){
-			GL_THROW("unrecognized random type \'%s\'", latency_mode);
+			GL_THROW("unrecognized random type \'%s\'", latency_mode.get_string());
 		}
 	} else {
 		random_type = RT_INVALID; // prevents update_latency from updating the value
@@ -149,6 +149,7 @@ TIMESTAMP network::sync(TIMESTAMP t0, TIMESTAMP t1)
 
 int network::attach(network_interface *nif){
 	if(nif == 0){
+		gl_error("network::attach(): null network_interface parameter");
 		return 0;
 	}
 	if(first_if == 0){
@@ -372,15 +373,15 @@ TIMESTAMP network::commit(TIMESTAMP t1, TIMESTAMP t2){
 						netmsg->prev->next = netmsg->next;
 					if(tempmsg.next != 0)
 						tempmsg.next->prev = netmsg->prev;
-					if(nif->outbox == netmsg){ // make sure we pull this off the outbox, if it's the first one there
-						nif->outbox = tempmsg.next;
+					if(nif->peek_outbox() == netmsg){ // make sure we pull this off the outbox, if it's the first one there
+						nif->SetOutbox(tempmsg.next);
 					}
 					/* NOTE: puts these into the inbox in reverse order */
 					// link netmsg to the list it's going to
-					netmsg->next = netmsg->pTo->inbox;
+					netmsg->next = netmsg->pTo->peek_inbox();
 					if(netmsg->next != 0)
 						netmsg->next->prev = netmsg;
-					netmsg->pTo->inbox = netmsg;
+					netmsg->pTo->SetInbox(netmsg);
 					// use a dummy msg to hold 'next'
 					netmsg = &tempmsg;
 				} else {

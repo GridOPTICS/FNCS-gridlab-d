@@ -52,7 +52,7 @@ public:
 	double recv_rate_used;
 	NISTATUS status;
 	double bandwidth_used;	// combined up/down for the last second
-	char1024 data_buffer;	// 
+	char data_buffer[256];	// 
 	int32 buffer_size;		// player-defined for byte i/o count
 	char32 prop_str;		// where to r/w data to/from
 	bool ignore_size;
@@ -66,15 +66,23 @@ public:
 
 	PROPERTY *target;
 	network_interface *next;
-	network_message *inbox;
-	network_message *outbox;
-	network *pNetwork;
-	TIMESTAMP next_msg_time;
 
+	network *pNetwork;
+	network *net;
+	TIMESTAMP next_msg_time;
+	int (* check_buffer_func)();
+protected:
+	int wrap_svbn(char *, char *, char *); // gl_set_value_by_name
+	bool check_write_msg();
+	void send_buffer_msg();
 private:
 	bool write_msg;
+	// private to not 'overlap' with derived classes
+	network_message *inbox;
+	network_message *outbox;
 public:
 	static CLASS *oclass;
+	static network_interface *defaults;
 	network_interface(MODULE *mod);
 	int create();
 	int init(OBJECT *parent);
@@ -90,9 +98,13 @@ public:
 	TIMESTAMP handle_inbox(TIMESTAMP);
 	network_message *handle_inbox(TIMESTAMP, network_message *);
 	bool has_outbound(){return (outbox != 0);}		// returns true if there is a message being sent from this interface
+	unsigned int count_outbound();
 	bool has_inbound(){return (inbox != 0);}		// returns true if there is a message completely received by this interface
 	network_message *peek_outbox(){return outbox;}	// returns the first message in the outbox without modifying it
 	network_message *peek_inbox(){return inbox;}	// returns the first message in the inbox without modifying it
+
+	int SetOutbox(network_message *nm){outbox = nm; return 1;}
+	int SetInbox(network_message *nm){inbox = nm; return 1;}
 };
 
 #endif // _NETWORK_INTERFACE_H
