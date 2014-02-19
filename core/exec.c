@@ -1607,6 +1607,10 @@ bool exec_sync_isrunning(struct sync_data *d)
 	return exec_sync_get(d)<=global_stoptime && !exec_sync_isnever(d) && exec_sync_ishard(d);
 }
 
+TIME getCurrentTime(){
+	return (TIME)global_clock;
+}
+
 /******************************************************************
  *  MAIN EXEC LOOP
  ******************************************************************/
