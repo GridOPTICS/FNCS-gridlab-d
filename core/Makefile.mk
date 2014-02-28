@@ -17,7 +17,7 @@ gridlabd_bin_LDADD =
 gridlabd_bin_LDADD += $(XERCES_LIB)
 gridlabd_bin_LDADD += $(CURSES_LIB)
 gridlabd_bin_LDADD += -ldl
-gridlabd_bin_LDADD += -lfncs_api
+gridlabd_bin_LDADD += -lfncs
 gridlabd_bin_LDADD += -lzmq
 
 gridlabd_bin_SOURCES =
