@@ -7,7 +7,7 @@ comm_comm_la_LDFLAGS =
 comm_comm_la_LDFLAGS += $(AM_LDFLAGS)
 
 comm_comm_la_LIBADD = 
-comm_comm_la_LIBADD += -lfncs_api
+comm_comm_la_LIBADD += -lfncs
 comm_comm_la_LIBADD += -lzmq
 
 comm_comm_la_SOURCES =
