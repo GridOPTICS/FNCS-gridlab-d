@@ -2342,6 +2342,7 @@ STATUS exec_start(void)
 		pthread_cond_destroy(&done[k]);
 	}
 
+	stopIntegrator();
 	/* report performance */
 	if (global_profiler && !exec_sync_isinvalid(NULL) )
 	{
