@@ -58,7 +58,6 @@ public:
 	typedef enum {
 		RM_DEADBAND,
 		RM_SLIDING,
-		RM_DOMINANT,
 	} RESOLVEMODE;
 	RESOLVEMODE resolve_mode;
 
@@ -160,8 +159,8 @@ public:
 
 	double last_setpoint;
 	
-	bool bid_deadband_ends;
-	bool bid_setpoint_change;
+	bool use_predictive_bidding;
+
 	// proxy mode values
 	bool proxy_bid_ready;
 	OBJECT *proxy_object;
@@ -191,6 +190,7 @@ private:
 	TIMESTAMP double_ramp_control(TIMESTAMP t0, TIMESTAMP t1);
 
 	TIMESTAMP next_run;
+	TIMESTAMP init_time;
 	double *pMonitor;
 	double *pSetpoint;
 	double *pDemand;
@@ -202,7 +202,7 @@ private:
 	//enumeration last_pState;
 	void cheat();
 	void fetch(double **prop, char *name, OBJECT *parent);
-	int dir, dir2;
+	int dir, direction;
 	double min, max;
 	double T_lim, k_T;
 	double heat_min, heat_max;
