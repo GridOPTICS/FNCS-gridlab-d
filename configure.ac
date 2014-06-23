@@ -400,6 +400,56 @@ AC_SUBST([CPPUNIT_CPPFLAGS])
 AC_SUBST([CPPUNIT_LDFLAGS])
 AC_SUBST([CPPUNIT_LIBS])
 
+# Check for Framework for Network Co-Simulation (FNCS)
+AC_ARG_WITH([fncs],
+    [AS_HELP_STRING([--with-fncs],
+                    [locate FNCS and enbable if found  @<:@default=no@:>@])],
+    [],
+    [with_fncs=no])
+AS_CASE([$with_fncs],
+        [yes],  [],
+        [no],   [],
+                [GLD_FLAG_PARSE([with_fncs],
+                        [FNCS_LIBS],
+                        [FNCS_LDFLAGS],
+                        [FNCS_CPPFLAGS])])
+gld_save_LIBS="$LIBS"; LIBS="$LIBS $FNCS_LIBS"
+gld_save_LDFLAGS="$LDFLAGS"; LDFLAGS="$LDFLAGS $FNCS_LDFLAGS"
+gld_save_CPPFLAGS="$CPPFLAGS"; CPPFLAGS="$CPPFLAGS $FNCS_CPPFLAGS"
+# add libfncs to FNCS_LIBS if missing
+AS_CASE([$FNCS_LIBS],
+        [*fncs*], [], [FNCS_LIBS="$FNCS_LIBS -lfncs"])
+AS_CASE([$LIBS],
+        [*fncs*], [], [LIBS="$LIBS -lfncs"])
+# add libzmq to FNCS_LIBS if missing
+AS_CASE([$FNCS_LIBS],
+        [*zmq*], [], [FNCS_LIBS="$FNCS_LIBS -lzmq"])
+AS_CASE([$LIBS],
+        [*zmq*], [], [LIBS="$LIBS -lzmq"])
+have_fncs=yes
+AC_MSG_CHECKING([for FNCS])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[
+#include<iostream>
+#include<csimtime.h>
+#include<integrator.h>
+]],
+[[
+TIME t = ::sim_comm::Integrator::getOneTimeStep();
+::std::cout << t << ::std::endl;
+]])],
+    [have_fncs=yes; have_fncs_int=1],
+    [have_fncs=no; have_fncs_int=0])
+LIBS="$gld_save_LIBS"
+LDFLAGS="$gld_save_LDFLAGS"
+CPPFLAGS="$gld_save_CPPFLAGS"
+AC_SUBST([FNCS_LIBS])
+AC_SUBST([FNCS_LDFLAGS])
+AC_SUBST([FNCS_CPPFLAGS])
+AC_MSG_RESULT([$have_fncs])
+AC_DEFINE_UNQUOTED([HAVE_FNCS], [$have_fncs_int], [whether FNCS was found])
+AM_CONDITIONAL([HAVE_FNCS], [test "x$have_fncs" = xyes])
+
 AC_SUBST([GLD_CPPFLAGS])
 
 AC_LANG_POP([C++])

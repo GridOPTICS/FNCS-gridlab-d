@@ -2,13 +2,14 @@ pkglib_LTLIBRARIES += comm/comm.la
 
 comm_comm_la_CPPFLAGS =
 comm_comm_la_CPPFLAGS += $(AM_CPPFLAGS)
+comm_comm_la_CPPFLAGS += $(FNCS_CPPFLAGS)
 
 comm_comm_la_LDFLAGS =
 comm_comm_la_LDFLAGS += $(AM_LDFLAGS)
+comm_comm_la_LDFLAGS += $(FNCS_LDFLAGS)
 
 comm_comm_la_LIBADD = 
-comm_comm_la_LIBADD += -lfncs
-comm_comm_la_LIBADD += -lzmq
+comm_comm_la_LIBADD += $(FNCS_LIBS)
 
 comm_comm_la_SOURCES =
 comm_comm_la_SOURCES += comm/comm.h

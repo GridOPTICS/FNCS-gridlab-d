@@ -7,18 +7,19 @@ bin_PROGRAMS += gridlabd.bin
 
 gridlabd_bin_CPPFLAGS =
 gridlabd_bin_CPPFLAGS += $(XERCES_CPPFLAGS)
+gridlabd_bin_CPPFLAGS += $(FNCS_CPPFLAGS)
 gridlabd_bin_CPPFLAGS += $(AM_CPPFLAGS)
 
 gridlabd_bin_LDFLAGS =
 gridlabd_bin_LDFLAGS += $(XERCES_LDFLAGS)
+gridlabd_bin_LDFLAGS += $(FNCS_LDFLAGS)
 gridlabd_bin_LDFLAGS += $(AM_LDFLAGS)
 
 gridlabd_bin_LDADD =
-gridlabd_bin_LDADD += $(XERCES_LIB)
+gridlabd_bin_LDADD += $(XERCES_LIBS)
+gridlabd_bin_LDADD += $(FNCS_LIBS)
 gridlabd_bin_LDADD += $(CURSES_LIB)
 gridlabd_bin_LDADD += -ldl
-gridlabd_bin_LDADD += -lfncs
-gridlabd_bin_LDADD += -lzmq
 
 gridlabd_bin_SOURCES =
 gridlabd_bin_SOURCES += core/aggregate.c
