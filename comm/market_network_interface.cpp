@@ -47,6 +47,7 @@ market_network_interface::market_network_interface(MODULE *mod) : network_interf
 			PT_char256, "average_price_prop", PADDR(avg_prop_name),
 			PT_char256, "stdev_price_prop", PADDR(stdev_prop_name),
 			PT_char256, "adjust_price_prop", PADDR(adj_price_prop_name),
+			PT_bool, "send_broadcast", PADDR(broadcast),
 			NULL)<1) GL_THROW("unable to publish properties in %s",__FILE__);
 			/* TROUBLESHOOT
 				The registration for the market_network_interface properties failed.   This is usually caused
@@ -62,6 +63,7 @@ market_network_interface::market_network_interface(MODULE *mod) : network_interf
 int market_network_interface::create() 
 {
 	adj_price_prop_name = NULL;
+	broadcast = false;
 	int szof = sizeof(market_network_interface);
 	return 1;
 }
@@ -316,7 +318,7 @@ int market_network_interface::check_buffer(){
 	write_msg = false;
 	//void *a = OBJECTDATA((void),obj->parent);
 
-	if(true == check_write_msg()){
+	if(broadcast == true && true == check_write_msg()){
 		send_market_update();	
 	}
 

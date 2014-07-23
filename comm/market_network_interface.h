@@ -37,6 +37,7 @@ public:
 	//mpi_network_message *inbox;
 	//mpi_network_message *outbox;
 	mpi_network *pNetwork;
+	bool broadcast; //boolean that will send a broadcast message through NS3 of the market clearing to all controllers if true
 //	TIMESTAMP next_msg_time;
 //protected:
 	bool check_write_msg();
