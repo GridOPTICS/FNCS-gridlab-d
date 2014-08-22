@@ -167,16 +167,20 @@ pkginclude_HEADERS += core/schedule.h
 pkginclude_HEADERS += core/test.h
 pkginclude_HEADERS += core/version.h
 
-core/build.h: buildnum
+# FNCS repo is using git, not svn, hardcode for now
+core/build.h:
+	echo "#define BUILDNUM 797" > $(top_build_prefix)core/build.h;
 
-.PHONY: buildnum
-buildnum:
-	$(AM_V_GEN)new=`svn info $(top_srcdir) | grep '^Revision: ' | cut -f2 -d' '`; \
-	if test -f $(top_build_prefix)core/build.h; then \
-		old=`cat $(top_build_prefix)core/build.h | cut -f3 -d' '`; \
-	else \
-		old=0; \
-	fi; \
-	if test $$new -ne $$old; then \
-		echo "#define BUILDNUM $$new" > $(top_build_prefix)core/build.h; \
-	fi;
+#core/build.h: buildnum
+#
+#.PHONY: buildnum
+#buildnum:
+#	$(AM_V_GEN)new=`svn info $(top_srcdir) | grep '^Revision: ' | cut -f2 -d' '`; \
+#	if test -f $(top_build_prefix)core/build.h; then \
+#		old=`cat $(top_build_prefix)core/build.h | cut -f3 -d' '`; \
+#	else \
+#		old=0; \
+#	fi; \
+#	if test $$new -ne $$old; then \
+#		echo "#define BUILDNUM $$new" > $(top_build_prefix)core/build.h; \
+#	fi;
