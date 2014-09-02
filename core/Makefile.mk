@@ -169,7 +169,7 @@ pkginclude_HEADERS += core/version.h
 
 # FNCS repo is using git, not svn, hardcode for now
 core/build.h:
-	echo "#define BUILDNUM 797" > $(top_build_prefix)core/build.h;
+	echo "#define BUILDNUM 3627" > $(top_build_prefix)core/build.h;
 
 #core/build.h: buildnum
 #
