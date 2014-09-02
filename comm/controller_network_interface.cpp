@@ -136,6 +136,7 @@ TIMESTAMP controller_network_interface::presync(TIMESTAMP t0, TIMESTAMP t1)
 	  sim_comm::Message *msg=this->myInterface->getNextInboxMessage();
 	  if(msg->getFrom().compare(dst_name)!=0){
 		  gl_output("Message from an unknown market ",msg->getFrom().c_str());
+		  delete msg;
 		  continue;
 	  }
 	  mpi_network_message *nm=new mpi_network_message((char*)msg->getData(),msg->getSize(),obj);
