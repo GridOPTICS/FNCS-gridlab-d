@@ -7,7 +7,7 @@ clock {
 
 
 module tape;
-module comm;
+module communications;
 module residential;
 
 object house{

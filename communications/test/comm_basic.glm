@@ -4,7 +4,7 @@ module residential {
 	implicit_enduses NONE;
 };
 module climate;
-module comm;
+module communications;
 
 //#setenv path=c:/mingw/bin
 //#setenv INCLUDE=c:/mingw/include
