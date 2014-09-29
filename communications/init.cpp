@@ -17,7 +17,7 @@
 #include "controller_network_interface.h"
 #include "market_network_interface.h"
 #include "mpi_comm_test.h"
-#include "transmissioncom.h"
+#include "transmission_interface.h"
 // default static variables here
 
 EXPORT CLASS *init(CALLBACKS *fntable, MODULE *module, int argc, char *argv[])
