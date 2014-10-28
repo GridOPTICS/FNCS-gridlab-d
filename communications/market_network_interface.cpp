@@ -43,11 +43,9 @@ market_network_interface::market_network_interface(MODULE *mod) : network_interf
 		// publish the class properties
 		if (gl_publish_variable(oclass,
 			PT_INHERIT, "network_interface",
-			PT_char256, "market_id_prop", PADDR(market_id_prop_name),
 			PT_char256, "average_price_prop", PADDR(avg_prop_name),
 			PT_char256, "stdev_price_prop", PADDR(stdev_prop_name),
 			PT_char256, "adjust_price_prop", PADDR(adj_price_prop_name),
-			PT_bool, "send_broadcast", PADDR(broadcast),
 			NULL)<1) GL_THROW("unable to publish properties in %s",__FILE__);
 			/* TROUBLESHOOT
 				The registration for the market_network_interface properties failed.   This is usually caused
@@ -64,6 +62,7 @@ int market_network_interface::create()
 {
 	adj_price_prop_name = NULL;
 	broadcast = false;
+	cnif_count = 0;
 	int szof = sizeof(market_network_interface);
 	return 1;
 }
@@ -184,6 +183,28 @@ int market_network_interface::init(OBJECT *parent)
 	gl_name_object(hdr,name,63);
 	myInterface=sim_comm::Integrator::getCommInterface(name);
 
+	FINDLIST *cnifs;
+	int index = 0;
+	OBJECT *obj = 0;
+	cnifs = gl_find_objects(FL_NEW,FT_CLASS,SAME,"controller_network_interface",FT_END);
+	if(cnifs == NULL){
+		gl_warning("No controller_network_interface objects were found. No Broadcast messages will be sent.");
+		broadcast = false;
+	} else {
+		pCnif = (OBJECT **)gl_malloc(cnifs->hit_count*sizeof(OBJECT*));
+		if(pCnif == NULL || cnifs->hit_count == 0){
+			gl_error("Failed to allocate controller_network_interface array.");
+			return 0;
+		} else {
+                        broadcast = true;
+			cnif_count = cnifs->hit_count;
+			while((obj = gl_find_next(cnifs, obj)) != NULL && index < cnif_count){
+				pCnif[index] = obj;
+				++index;
+			}
+		}
+	}
+
 	return 1;
 }
 
@@ -224,7 +245,7 @@ TIMESTAMP market_network_interface::presync(TIMESTAMP t0, TIMESTAMP t1)
 		  memset(data_buffer, 0, 1024);
 		  memcpy(this->data_buffer, nm->message, nm->buffer_size);
 
-		  gl_output("mnif:h-inbox()@%li msg (%i) == '%s'", t1, nm->buffer_size, data_buffer);
+		  gl_verbose("mnif:h-inbox()@%li msg (%i) == '%s'", t1, nm->buffer_size, data_buffer);
 		  // read first word as type indicator
 		  if(0 == strncmp(data_buffer, bid_req_str, 7)){
 			  res = this->process_bid(nm);
@@ -411,7 +432,7 @@ int market_network_interface::process_bid(mpi_network_message *mnmsg){
 	}; // see bid_state in market.h
 	obj = OBJECTHDR(this);
 
-	gl_output("mnif::proc_bid() ~ '%s'", mnmsg->message);
+	gl_verbose("mnif::proc_bid() ~ '%s'", mnmsg->message);
 	// deserialize message
 	lead_str =		strtok_r(this->data_buffer, " \r\t\n", &saveptr);
 	if(0 != strcmp(lead_str, "bidreq")){
@@ -476,13 +497,13 @@ int market_network_interface::process_bid(mpi_network_message *mnmsg){
 	if(sent_for_market == -1){
 //		bid_rv = -3; // late bid
 //		bid_res = 0;
-		gl_output("process_bid(): late bid, sending (0, -3)");
+		gl_verbose("process_bid(): late bid, sending (0, -3)");
 		send_bid_response(mnmsg->from_name, 0, -3);
 		return rv;
 	}
 	m_id_ptr = gl_get_int64_by_name(obj->parent, "market_id");
 	if(*m_id_ptr > m_id){
-		gl_output("process_bid(): late bid, sending (0, -3) [catch two]");
+		gl_verbose("process_bid(): late bid, sending (0, -3) [catch two]");
 		send_bid_response(mnmsg->from_name, 0, -3);
 		return rv;
 	}
@@ -494,7 +515,7 @@ int market_network_interface::process_bid(mpi_network_message *mnmsg){
 		result = (*(bid_func))(obj->parent, obj, quant, price, stateval, bid);
 	}
 	bid_rv = result;
-	gl_output("bid_func: %g, %g, %i, %li -> %i", quant, price, stateval, bid, result);
+	gl_verbose("bid_func: %g, %g, %i, %li -> %i", quant, price, stateval, bid, result);
 	if(bid_rv < 0){
 		bid_res = 0;
 	} else {
@@ -545,6 +566,7 @@ int market_network_interface::send_market_update(){
 	double period;
 	double pricecap, avg, stdev, price;
 	double *pPricecap, *pAvg, *pStdev, *pPrice, *pPeriod;
+	int index = 0;
 	
 	memset(timestr,0,64);
 	if(true == write_init){
@@ -581,7 +603,7 @@ int market_network_interface::send_market_update(){
 		gl_error("send_market_update(): unable to access price prop 'current_market.clearing_price'");
 		return 0;
 	}
-	printf("%lf\n",*pPrice);
+	//printf("%lf\n",*pPrice);
 	pUnit = gl_get_string(obj->parent, unit_prop);
 	if(0 == pUnit){
 		gl_error("send_market_update(): unable to access unit prop 'unit'");
@@ -600,16 +622,17 @@ int market_network_interface::send_market_update(){
 	// "market INIT/[time] [id] [period] [price_cap] [avg] [stdev] [price] [unit]"
 	//sprintf(data_buffer, "market %s %"FMT_INT64" %f %f %f %f %s", timestr, last_market_id, 
 	//	period, pricecap, avg, stdev, price, pUnit[0] == 0 ? "" : pUnit);
-	printf("market %s %lu %f %f %f %f %f\n", timestr, last_market_id, 
-                period, pricecap, avg, stdev, price);
+	/*printf("market %s %lu %f %f %f %f %f\n", timestr, last_market_id,
+                period, pricecap, avg, stdev, price);*/
 	sprintf(data_buffer, "market %s %lu %f %f %f %f %f", timestr, last_market_id, 
                 period, pricecap, avg, stdev, price);
 	// build message object and add to the stack
 	curr_buffer_size = (int32)strlen(data_buffer);
+#if 1
 	mpi_network_message *nm =new mpi_network_message(); //(mpi_network_message *)malloc(sizeof(mpi_network_message));
 	//memset(nm, 0, sizeof(mpi_network_message));
 	nm->send_message(obj, "*", data_buffer, curr_buffer_size);
-	gl_output("MNIF::SEND() = '%s'", data_buffer);
+	gl_verbose("MNIF::SEND() = '%s'", data_buffer);
 	// lock interface while touching outbox
 	LOCK_OBJECT(obj);
 	uint32 size;
@@ -619,6 +642,23 @@ int market_network_interface::send_market_update(){
 	UNLOCK_OBJECT(obj);
 	delete[] buffer;
 	delete nm;
+#else
+	for( int index=0; index < cnif_count; index++) {
+		mpi_network_message *nm =new mpi_network_message(); //(mpi_network_message *)malloc(sizeof(mpi_network_message));
+		//memset(nm, 0, sizeof(mpi_network_message));
+		nm->send_message(obj, pCnif[index]->name, data_buffer, curr_buffer_size);
+		gl_verbose("MNIF::SEND() = '%s'", data_buffer);
+		// lock interface while touching outbox
+		LOCK_OBJECT(obj);
+		uint32 size;
+		char* buffer=nm->serialize(&size);
+		sim_comm::Message *msg2=new sim_comm::Message(nm->from_name,nm->to_name,gl_globalclock,(uint8_t *)buffer,size);
+		this->myInterface->send(msg2);
+		UNLOCK_OBJECT(obj);
+		delete[] buffer;
+		delete nm;
+	}
+#endif
 	write_msg = false;
 	return 1;
 }

@@ -13,7 +13,7 @@
 
 #include "comm.h"
 #include "network.h"
-#include "mpi_network.h"
+//#include "mpi_network.h"
 #include "mpi_network_message.h"
 #include "network_interface.h"
 #include "integrator.h"

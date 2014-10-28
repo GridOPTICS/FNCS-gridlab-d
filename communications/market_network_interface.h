@@ -14,6 +14,7 @@
 #include "network_message.h"
 #include "network_interface.h"
 #include "mpi_network_message.h"
+#include "controller_network_interface.h"
 #include <integrator.h>
 #include <objectcomminterface.h>
 #include <message.h>
@@ -45,6 +46,8 @@ public:
 	int64 bid_res;	// these should be per-message and not
 	int64 bid_rv;	//  done at the object level
 //private:
+	OBJECT **pCnif;
+	int cnif_count;
 	int process_bid(mpi_network_message *);
 	int send_bid_response(char* dst, int64 bid_res, int64 bid_rv); // part of p_b?
 	int send_market_update();

@@ -135,7 +135,7 @@ TIMESTAMP controller_network_interface::presync(TIMESTAMP t0, TIMESTAMP t1)
 	while(this->myInterface->hasMoreMessages()){
 	  sim_comm::Message *msg=this->myInterface->getNextInboxMessage();
 	  if(msg->getFrom().compare(dst_name)!=0){
-		  gl_output("Message from an unknown market ",msg->getFrom().c_str());
+		  gl_verbose("Message from an unknown market ",msg->getFrom().c_str());
 		  delete msg;
 		  continue;
 	  }
@@ -251,10 +251,10 @@ void controller_network_interface::handle_inbox(TIMESTAMP t1, mpi_network_messag
 		memcpy(this->data_buffer, nm->message, nm->buffer_size);
 		UNLOCK_OBJECT(my);
 
-		gl_output("cnif::h-inbox()@%lli msg (%i) == '%s'", t1, nm->buffer_size, data_buffer);
+		gl_verbose("cnif::h-inbox()@%lli msg (%i) == '%s'", t1, nm->buffer_size, data_buffer);
 		// read first word as type indicator
 		if(0 == strncmp(data_buffer, market_init_str, strlen(market_init_str))){
-			gl_output("cnif->process_market_init()");
+			gl_verbose("cnif->process_market_init()");
 			res = this->process_market_init();
 			if(0 == res){
 				gl_error("handle_inbox(): error when processing market_init");
@@ -262,7 +262,7 @@ void controller_network_interface::handle_inbox(TIMESTAMP t1, mpi_network_messag
 			}
 			
 		} else if(0 == strncmp(data_buffer, market_upd_str, strlen(market_upd_str))){
-			gl_output("cnif->process_market_update()");
+			gl_verbose("cnif->process_market_update()");
 			res = this->process_market_update();
 			if(0 == res){
 				gl_error("handle_inbox(): error when processing market_update");
@@ -270,7 +270,7 @@ void controller_network_interface::handle_inbox(TIMESTAMP t1, mpi_network_messag
 			}
 			
 		} else if(0 == strncmp(data_buffer, bid_rsp_str, 8)){
-			gl_output("cnif->process_bid_response()");
+			gl_verbose("cnif->process_bid_response()");
 			res = this->process_bid_response();
 			if(0 == res){
 				gl_error("handle_inbox(): error when processing bid_response");
@@ -348,13 +348,13 @@ int controller_network_interface::send_bid_request(){
 	}
 	// serialize
 	message = (char *)malloc(256);
-	gl_output("%s.CNIF::SEND() = bidreq %lli %lg %lg %i %lli %lli", gl_name(obj, namestr, 31), gl_globalclock, *p, *q, *st, *k, *id);
+	gl_verbose("%s.CNIF::SEND() = bidreq %lli %lg %lg %i %lli %lli", gl_name(obj, namestr, 31), gl_globalclock, *p, *q, *st, *k, *id);
 	sprintf(message, "bidreq %lli %lg %lg %i %lli %lli", gl_globalclock, *p, *q, *st, *k, *id);
 	// outbox/send
 	mpi_network_message *nm =new mpi_network_message(); //(mpi_network_message *)malloc(sizeof(mpi_network_message));
 	//memset(nm, 0, sizeof(mpi_network_message)); //class should be allocted with new, class allocation with malloc is undefined behavour C++ spec.
 	nm->send_message(obj, dst_name, message, (int)strlen(message));
-	gl_output("CNIF::SEND(to '%s') = '%s'", dst_name, message);
+	gl_verbose("CNIF::SEND(to '%s') = '%s'", dst_name, message);
 	// lock interface while touching outbox
 	free(message);
 	LOCK_OBJECT(obj);

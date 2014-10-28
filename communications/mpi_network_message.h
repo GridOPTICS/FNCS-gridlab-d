@@ -10,10 +10,10 @@
 #define _MPI_NETWORK_MESSAGE_H
 
 #include "comm.h"
-#include "mpi_network.h"
+//#include "mpi_network.h"
 #include "network_interface.h"
 
-class mpi_network;
+//class mpi_network;
 
 class mpi_network_message {
 public:
