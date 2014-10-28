@@ -628,7 +628,7 @@ int market_network_interface::send_market_update(){
                 period, pricecap, avg, stdev, price);
 	// build message object and add to the stack
 	curr_buffer_size = (int32)strlen(data_buffer);
-#if 1
+#if 0
 	mpi_network_message *nm =new mpi_network_message(); //(mpi_network_message *)malloc(sizeof(mpi_network_message));
 	//memset(nm, 0, sizeof(mpi_network_message));
 	nm->send_message(obj, "*", data_buffer, curr_buffer_size);
