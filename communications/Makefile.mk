@@ -2,7 +2,7 @@ pkglib_LTLIBRARIES += communications/comm.la
 
 communications_comm_la_CPPFLAGS =
 communications_comm_la_CPPFLAGS += $(AM_CPPFLAGS)
-communications_comm_la_CPPFLAGS += $(FNCS_CPPFLAGS)
+communications_comm_la_CPPFLAGS += $(FNCS_CPPFLAGS)/fncs
 
 communications_comm_la_LDFLAGS =
 communications_comm_la_LDFLAGS += $(AM_LDFLAGS)

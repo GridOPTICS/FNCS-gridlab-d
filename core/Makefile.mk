@@ -7,7 +7,7 @@ bin_PROGRAMS += gridlabd.bin
 
 gridlabd_bin_CPPFLAGS =
 gridlabd_bin_CPPFLAGS += $(XERCES_CPPFLAGS)
-gridlabd_bin_CPPFLAGS += $(FNCS_CPPFLAGS)
+gridlabd_bin_CPPFLAGS += $(FNCS_CPPFLAGS)/fncs
 gridlabd_bin_CPPFLAGS += $(AM_CPPFLAGS)
 
 gridlabd_bin_LDFLAGS =
