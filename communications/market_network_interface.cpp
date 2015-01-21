@@ -498,13 +498,13 @@ int market_network_interface::process_bid(mpi_network_message *mnmsg){
 //		bid_rv = -3; // late bid
 //		bid_res = 0;
 		gl_verbose("process_bid(): late bid, sending (0, -3)");
-		send_bid_response(mnmsg->from_name, 0, -3);
+		rv = send_bid_response(mnmsg->from_name, 0, -3);
 		return rv;
 	}
 	m_id_ptr = gl_get_int64_by_name(obj->parent, "market_id");
 	if(*m_id_ptr > m_id){
 		gl_verbose("process_bid(): late bid, sending (0, -3) [catch two]");
-		send_bid_response(mnmsg->from_name, 0, -3);
+		rv = send_bid_response(mnmsg->from_name, 0, -3);
 		return rv;
 	}
 	// "else"

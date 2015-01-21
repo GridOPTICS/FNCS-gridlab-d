@@ -1636,11 +1636,10 @@ void controller::check_proxystate(char *value){
 			(local_clear_time > 0) &&
 			(proxy_price_cap > 0.0)){
 				proxystate = PS_READY;
-				proxy_market_id = -1;
 				proxy_has_id = false;
 				lastbid_id = 0;
 				gl_name(OBJECTHDR(this), namestr, 31);
-				gl_output("%s is ready at %lli", namestr.get_string(), local_clear_time);
+				gl_verbose("%s is ready at %lli", (const char *)namestr, local_clear_time);
 		}
 	}
 }
